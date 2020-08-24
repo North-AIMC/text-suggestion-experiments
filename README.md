@@ -1,1 +1,5 @@
-Experiments for performing model selection
+Setup virtual environment:
+```
+python -m venv .env
+source .env/bin/activate
+```
