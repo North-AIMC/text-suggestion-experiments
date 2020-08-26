@@ -44,7 +44,7 @@ class Evaluator(object):
 
                         # User views current text and suggestions, and decides optimal key
                         user.view_current_text(text_box.current_text)
-                        optimal_key_press = user.decide_optimal_key_press(suggestions)
+                        optimal_key_press = user.decide_optimal_key_press(suggestions[:3]) # User only sees 3 suggestions
                         text_box.update_text(optimal_key_press)
 
                         # Log

@@ -1,3 +1,19 @@
+import time
+
+class TimeTestPipeline(object):
+    def __init__(self):
+        pass
+
+    def get_suggestions(self, text, group):
+        if(group=='+'):
+            time.sleep(0.002)
+            return(['','',''])
+        elif(group=='-'):
+            time.sleep(0.001)
+            return(['','',''])
+        else:
+            return(['','',''])
+
 class StopWordTestPipeline(object):
     def __init__(self):
         pass
@@ -22,7 +38,7 @@ class BiasTestPipeline(object):
         else:
             return(['','',''])
 
-class NullPipeline(object):
+class NullTestPipeline(object):
     def __init__(self):
         pass
 
