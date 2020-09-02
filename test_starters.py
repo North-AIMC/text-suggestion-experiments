@@ -1,16 +1,18 @@
 import json
 from datetime import datetime
 from evaluation import Evaluator
-from pipelines.completions import BaselineCompletionsPipeline
+from pipelines.tests import NullTestPipeline
+from pipelines.starters import BaselineStarterPipeline
 
 evaluator = Evaluator(10,['0','+','-'])
 pipelines = [
-     {'name': 'BaselineCompletions',
-      'pipe': BaselineCompletionsPipeline}
+    {'name': '1_NullTest',
+     'pipe': NullTestPipeline},
+    {'name': '2_BaselineStarter',
+     'pipe': BaselineStarterPipeline},
 ]
 eval_data = evaluator.evaluate(pipelines)
 
-# Move saving into evaluator!!
 #ns = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 #with open('./results/'+ns+'.json', 'w') as f:
 #    json.dump(eval_data,f)

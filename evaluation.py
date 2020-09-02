@@ -10,7 +10,7 @@ sid = SentimentIntensityAnalyzer()
 class Evaluator(object):
     def __init__(self, num_samples, groups):
         self.num_samples = num_samples
-        self.texts = self._get_texts(num_samples)
+        self.texts = [t.lower() for t in self._get_texts(num_samples)] # Lower case!
         self.groups = groups
 
     def evaluate(self, pipelines):
@@ -18,7 +18,11 @@ class Evaluator(object):
         for pipeline in pipelines:
 
             # Initialise the pipeline
-            pipe = pipeline['pipe']()
+            if('params' in pipeline):
+                print("Using params!")
+                pipe = pipeline['pipe'](**pipeline['params'])
+            else:
+                pipe = pipeline['pipe']()
             print(pipeline['name'])
 
             # Iterate through the groups
