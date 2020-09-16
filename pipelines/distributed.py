@@ -4,15 +4,17 @@ import numpy
 import random
 from transformers import AutoTokenizer, AutoModelForMaskedLM
 from pipelines.vocabs.words import words
+from pipelines.vocabs.contractions import contractions
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 class LangModelPipeline(object):
-    def __init__(self, model_name, topK_for_completions, topK_for_biasing, split_sents): # Make cleaner (!!)
+    def __init__(self, model_name, topK_for_completions, topK_for_biasing, split_sents, contraction_action): # Make cleaner (!!)
         # Params
         self.model_name = model_name
         self.topK_for_completions = topK_for_completions
         self.topK_for_biasing = topK_for_biasing
         self.split_sents = split_sents
+        self.contraction_action = contraction_action
 
         # Load tokenizer and language model (easy to change model)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
@@ -21,6 +23,13 @@ class LangModelPipeline(object):
         # Load first word suggestions (easy to change vocabulary and ranking)
         self.pos_words = [s.lower() for s in words['neu']+words['pos']]
         self.neg_words = [s.lower() for s in words['neu']+words['neg']]
+
+
+        # Load contractions
+        if(self.contraction_action):
+            self.pos_words += contractions
+            self.neg_words += contractions
+            self.contractions = contractions
 
         # Pre-compute sentiment scores(???)
         self.scorer = SentimentIntensityAnalyzer()
@@ -49,8 +58,7 @@ class LangModelPipeline(object):
         if(not text.strip()):
             return(self._format_valid_suggestions(first_words, True))
 
-        # If in the middle of a word, get completions
-        elif(text[-1].isalpha()):
+        elif(text[-1].isalpha() or text[-1]=="'"):
             return(self._get_completions(text, first_words, sentiment_bias))
 
         # If starting a new word, get predictions
@@ -69,8 +77,12 @@ class LangModelPipeline(object):
             return(['','',''])
 
     def _get_completions(self, text, first_words, sentiment_bias):
+        # If I
+        if(self.contraction_action and text[-2:]==' I'):
+            return(["I'm","I'll","I've"])
+
         # If first word, then use first_words for completions
-        if(len(text.lstrip().split(' '))==1):
+        elif(len(text.lstrip().split(' '))==1):
             # Get current word
             currentWord = text.rsplit(' ', 1)[-1]
 
@@ -83,9 +95,12 @@ class LangModelPipeline(object):
             # Predict vocabulary for completions
             predictions = self._get_predictions(text, self.topK_for_completions)
 
+            if(self.contraction_action):
+                predictions += contractions
 
             # Get current word
             currentWord = text.rsplit(' ', 1)[-1]
+            print(currentWord)
 
             # Get valid predictions
             valid = [w for w in predictions if w.startswith(currentWord.lower())]
@@ -118,11 +133,17 @@ class LangModelPipeline(object):
         # Get topK_ids for next word
         topK_ids = output[0][0,mask_idx,:].topk(topK).indices.tolist()
 
+        # Convert back to tokens and remove any sub-tokens
+        valid = [t for t in self.tokenizer.convert_ids_to_tokens(topK_ids) if not t.startswith('##')]
+
         # Decode back tokens (NB: Make ids_to_tokens...)
-        return(self.tokenizer.decode(topK_ids).split())
+        return(valid)
 
 
     def _format_valid_suggestions(self, valid, isCapitalised):
+        # Remove any subtokens
+        #valid = [s for s in valid if not s.startswith('##')]
+
         # Ensure 3, and only 3, suggestions are returned
         if(len(valid)<3):
             valid += ['']*(3 - len(valid))

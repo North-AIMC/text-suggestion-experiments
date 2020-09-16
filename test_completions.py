@@ -3,7 +3,7 @@ from datetime import datetime
 from evaluation import Evaluator
 from pipelines.completions import BiasedCompletionsPipeline, BiasedCompletionsWithCapsPipeline, BalancedBiasedCompletionsWithCapsPipeline
 
-evaluator = Evaluator(10,['0','+','-'])
+evaluator = Evaluator(5,['0','+','-'])
 pipelines = [
      {'name': '4_BiasedCompletions',
       'pipe': BiasedCompletionsPipeline},

@@ -10,7 +10,7 @@ sid = SentimentIntensityAnalyzer()
 class Evaluator(object):
     def __init__(self, num_samples, groups):
         self.num_samples = num_samples
-        self.texts = [t.lower() for t in self._get_texts(num_samples)] # Lower case!
+        self.texts = [t for t in self._get_texts(num_samples)] # Lower case!
         self.groups = groups
 
     def evaluate(self, pipelines):
@@ -33,30 +33,7 @@ class Evaluator(object):
                 for i, target_text in enumerate(self.texts):
                     print(f'{i}/{self.num_samples}')
 
-                    # Setup simulation
-                    text_box = TextBox()
-                    user = User(target_text)
-
-                    # Run simulation
-                    path_data = []
-                    while len(text_box.current_text) < len(target_text):
-
-                        # Suggestions arrive
-                        start = time.time()
-                        suggestions = pipe.get_suggestions(text_box.current_text,group)
-                        request_time = (time.time()-start)
-
-                        # User views current text and suggestions, and decides optimal key
-                        user.view_current_text(text_box.current_text)
-                        optimal_key_press = user.decide_optimal_key_press(suggestions[:3]) # User only sees 3 suggestions
-                        text_box.update_text(optimal_key_press)
-
-                        # Log
-                        path_data.append({
-                            'request_time': request_time,
-                            'suggestions': suggestions,
-                            'key_press': optimal_key_press,
-                        })
+                    path_data = self._simulate(pipe, group, target_text)
 
                     results.append({
                         'pipe': pipeline['name'],
@@ -65,6 +42,35 @@ class Evaluator(object):
                         'path_data': path_data,
                     })
         return(results)
+
+    def _simulate(self, pipe, group, target_text):
+        # Setup simulation
+        text_box = TextBox()
+        user = User(target_text)
+        # Run simulation
+        path_data = []
+        while len(text_box.current_text) < len(target_text):
+
+            # Suggestions arrive
+            start = time.time()
+            print(text_box.current_text)
+            suggestions = pipe.get_suggestions(text_box.current_text,group)
+            print(suggestions)
+            request_time = (time.time()-start)
+
+            # User views current text and suggestions, and decides optimal key
+            user.view_current_text(text_box.current_text)
+            optimal_key_press = user.decide_optimal_key_press(suggestions[:3]) # User only sees 3 suggestions
+            text_box.update_text(optimal_key_press)
+
+            # Log
+            path_data.append({
+                'request_time': request_time,
+                'suggestions': suggestions,
+                'key_press': optimal_key_press,
+            })
+        return(path_data)
+
 
     def analyse(self, results):
         df = pd.DataFrame(results)

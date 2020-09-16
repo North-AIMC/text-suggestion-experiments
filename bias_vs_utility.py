@@ -5,11 +5,11 @@ from evaluation import Evaluator
 from pipelines.distributed import LangModelPipeline
 
 groups = ['0','1','-1']
-n_samples = 1
+n_samples = 10
 evaluator = Evaluator(n_samples,groups)
 
 pipelines = []
-for i in [3, 4, 5, 6, 7, 8, 9, 10]:
+for i in [10, 20]:
     pipelines.append(
     {'name': f'{i}_bias_topK_{i}',
       'pipe': LangModelPipeline,
@@ -24,13 +24,13 @@ for i in [3, 4, 5, 6, 7, 8, 9, 10]:
 
 eval_data = evaluator.evaluate(pipelines)
 
-ns = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-with open('./results/'+ns+'.json', 'w') as f:
-    json.dump(eval_data,f)
+#ns = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+#with open('./results/'+ns+'.json', 'w') as f:
+#    json.dump(eval_data,f)
 
 res_frame = evaluator.analyse(eval_data)
 print(res_frame.head(20))
-res_frame.to_csv('./results/'+ns+'.csv',index=False)
+#res_frame.to_csv('./results/'+ns+'.csv',index=False)
 
 
 

@@ -4,7 +4,7 @@ from evaluation import Evaluator
 from pipelines.distributed import LangModelPipeline
 
 groups = ['1']
-n_samples = 100
+n_samples = 10
 evaluator = Evaluator(n_samples,groups)
 
 pipelines = []
